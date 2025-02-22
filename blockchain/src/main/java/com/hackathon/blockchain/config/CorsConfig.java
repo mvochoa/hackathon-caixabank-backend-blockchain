@@ -19,7 +19,7 @@ public class CorsConfig {
         config.setAllowedHeaders(Collections.singletonList("*"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(Collections.singletonList("*"));
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 

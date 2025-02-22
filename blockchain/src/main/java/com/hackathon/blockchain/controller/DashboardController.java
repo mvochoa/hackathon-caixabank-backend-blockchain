@@ -17,6 +17,6 @@ public class DashboardController {
         }
 
         return "Welcome to your dashboard, " + user.getUsername() + "!\n" +
-               "Your registered email is: " + user.getEmail();
+                "Your registered email is: " + user.getEmail();
     }
 }
