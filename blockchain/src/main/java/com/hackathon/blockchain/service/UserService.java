@@ -4,18 +4,21 @@ import com.hackathon.blockchain.dto.auth.LoginUserDto;
 import com.hackathon.blockchain.dto.auth.RegisterUserDto;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
+import static com.hackathon.blockchain.model.Constants.responseInvalidCredential;
+
 @Service
 @AllArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -36,27 +39,17 @@ public class UserService {
         return "User registered and logged in successfully";
     }
 
-    public String login(HttpSession session, LoginUserDto loginUserDto) {
+    public String login(LoginUserDto loginUserDto) {
         Optional<User> user = userRepository.findByUsername(loginUserDto.getUsername());
         if (user.isEmpty() || !passwordEncoder.matches(loginUserDto.getPassword(), user.get().getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "❌ Invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, responseInvalidCredential.getMessage());
         }
 
-        session.setAttribute("username", loginUserDto.getUsername());
         return "Login successful";
     }
 
-    public String checkSession(HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "❌ Invalid credentials");
-        }
-
-        return username;
-    }
-
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "Logged out successfully";
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
     }
 }

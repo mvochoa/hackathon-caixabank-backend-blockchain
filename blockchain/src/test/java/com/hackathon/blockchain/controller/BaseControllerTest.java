@@ -2,6 +2,7 @@ package com.hackathon.blockchain.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackathon.blockchain.repository.UserRepository;
+import com.hackathon.blockchain.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,4 +23,7 @@ public class BaseControllerTest {
 
     @Autowired
     protected UserRepository userRepository;
+
+    @Autowired
+    protected UserService userService;
 }

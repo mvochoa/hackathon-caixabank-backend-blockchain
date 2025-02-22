@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -13,7 +14,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @ControllerAdvice
 public class ServiceExceptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(value = {ResponseStatusException.class})
+
+    @ExceptionHandler(value = {ResponseStatusException.class, HttpClientErrorException.Forbidden.class})
     public ResponseEntity<Object> handleResponseStatusException(
             ResponseStatusException ex, WebRequest request) {
         log.error("[Error] ResponseStatusException Exception occurred: {}", ex.getMessage());
