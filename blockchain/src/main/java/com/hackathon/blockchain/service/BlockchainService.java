@@ -15,7 +15,7 @@ public class BlockchainService {
     private final BlockRepository blockRepository;
 
     public boolean isChainValid() {
-        List<Block> chain = blockRepository.findAll(Sort.by(Sort.Direction.ASC, "blockIndex"));
+        List<Block> chain = (List<Block>) blockRepository.findAll(Sort.by(Sort.Direction.ASC, "blockIndex"));
 
         for (int i = 1; i < chain.size(); i++) {
             Block current = chain.get(i);

@@ -63,7 +63,7 @@ public class SmartContractEvaluationService {
      */
     @Transactional
     public void evaluateSmartContracts() {
-        List<SmartContract> contracts = smartContractRepository.findAll(); // O filtrar por "ACTIVE"
+        List<SmartContract> contracts = (List<SmartContract>) smartContractRepository.findAll(); // O filtrar por "ACTIVE"
         List<Transaction> pendingTxs = transactionRepository.findByStatus("PENDING");
 
         for (Transaction tx : pendingTxs) {

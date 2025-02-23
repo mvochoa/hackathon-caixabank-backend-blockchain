@@ -1,9 +1,13 @@
 package com.hackathon.blockchain.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hackathon.blockchain.model.Asset;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.repository.AssetRepository;
+import com.hackathon.blockchain.repository.BlockRepository;
+import com.hackathon.blockchain.repository.SmartContractRepository;
+import com.hackathon.blockchain.repository.TransactionRepository;
 import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.repository.WalletKeyRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
@@ -48,6 +52,15 @@ public class BaseControllerTest {
     @Autowired
     protected WalletKeyRepository walletKeyRepository;
 
+    @Autowired
+    protected BlockRepository blockRepository;
+
+    @Autowired
+    protected SmartContractRepository smartContractRepository;
+
+    @Autowired
+    protected TransactionRepository transactionRepository;
+
     protected final String userPassword = "password";
     protected final User user = User.builder()
             .email("test@example.com")
@@ -56,15 +69,24 @@ public class BaseControllerTest {
 
     @BeforeEach
     public void setUp() {
+        transactionRepository.deleteAll();
+        smartContractRepository.deleteAll();
         walletKeyRepository.deleteAll();
         walletRepository.deleteAll();
         assetRepository.deleteAll();
         userRepository.deleteAll();
+        blockRepository.deleteAll();
+        walletService.initializeLiquidityPools();
         userRepository.save(user.toBuilder().password(passwordEncoder.encode(userPassword)).build());
     }
 
     public Wallet generateWallet() {
         String address = walletService.createWalletForUser(Objects.requireNonNull(userRepository.findByUsername("test").orElse(null)));
-        return walletRepository.findByAddress(address.replace("✅ Wallet successfully created! Address: ", "")).orElse(null);
+        Wallet wallet = walletRepository.findByAddress(address.replace("✅ Wallet successfully created! Address: ", "")).orElse(null);
+
+        Asset asset = Asset.builder().symbol("USDT").quantity(1000.0).wallet(wallet).build();
+        assetRepository.save(asset);
+
+        return walletRepository.findById(wallet.getId()).get();
     }
 }

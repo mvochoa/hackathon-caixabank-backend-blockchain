@@ -2,16 +2,19 @@ package com.hackathon.blockchain.controller;
 
 import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.dto.WalletKeyDto;
+import com.hackathon.blockchain.dto.wallet.BuyAssetWalletDto;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +51,15 @@ public class WalletController {
                         .message(String.format("Keys generated/retrieved successfully for wallet id: %d", walletKey.getWallet().getId()))
                         .publicKey(walletKey.getPublicKey())
                         .absolutePath(Path.of(KEYS_FOLDER).toAbsolutePath().toString())
+                        .build(),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/buy")
+    public ResponseEntity<ResponseMessageDto> buy(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAssetWalletDto buyAssetWalletDto) {
+        return new ResponseEntity<>(
+                ResponseMessageDto.builder()
+                        .message(walletService.buyAsset(user.getId(), buyAssetWalletDto.getSymbol(), buyAssetWalletDto.getQuantity()))
                         .build(),
                 HttpStatus.OK);
     }

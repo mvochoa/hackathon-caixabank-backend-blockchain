@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder(toBuilder = true)
@@ -31,8 +32,8 @@ public class Wallet {
     private String address;
     private Double balance;
 
-    @OneToMany(mappedBy = "wallet", cascade = CascadeType.PERSIST)
-    private List<Asset> assets;
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL)
+    private List<Asset> assets = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -43,6 +44,15 @@ public class Wallet {
     @Column(nullable = false)
     private Double netWorth = 0.0;
 
-    @OneToOne(mappedBy = "wallet")
+    @OneToOne(mappedBy = "wallet", cascade = CascadeType.ALL)
     private WalletKey walletKey;
+
+    @OneToMany(mappedBy = "issuerWallet", cascade = CascadeType.ALL)
+    private List<SmartContract> smartContracts;
+
+    @OneToMany(mappedBy = "senderWallet", cascade = CascadeType.ALL)
+    private List<Transaction> transactionSender;
+
+    @OneToMany(mappedBy = "receiverWallet", cascade = CascadeType.ALL)
+    private List<Transaction> transactionReceiver;
 }

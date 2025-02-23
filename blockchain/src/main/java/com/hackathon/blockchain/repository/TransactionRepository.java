@@ -2,24 +2,16 @@ package com.hackathon.blockchain.repository;
 
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.model.Wallet;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public class TransactionRepository {
-    public List<Transaction> findByStatus(String status) {
-        return List.of();
-    }
+public interface TransactionRepository extends CrudRepository<Transaction, Long> {
+    List<Transaction> findByStatus(String status);
 
-    public List<Transaction> findBySenderWallet(Wallet wallet) {
-        return List.of();
-    }
+    List<Transaction> findBySenderWallet(Wallet wallet);
 
-    public List<Transaction> findByReceiverWallet(Wallet wallet) {
-        return List.of();
-    }
-
-    public void save(Transaction transaction) {
-    }
+    List<Transaction> findByReceiverWallet(Wallet wallet);
 }

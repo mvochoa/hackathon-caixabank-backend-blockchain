@@ -6,11 +6,15 @@ import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.repository.TransactionRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
+import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -22,20 +26,12 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class WalletService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final MarketDataService marketDataService;
-
-    public WalletService(WalletRepository walletRepository,
-                         TransactionRepository transactionRepository,
-                         MarketDataService marketDataService,
-                         BlockchainService blockchainService) {
-        this.walletRepository = walletRepository;
-        this.transactionRepository = transactionRepository;
-        this.marketDataService = marketDataService;
-    }
 
     public Optional<Wallet> getWalletByUserId(Long userId) {
         return walletRepository.findByUserId(userId);
@@ -66,6 +62,13 @@ public class WalletService {
         }
     }
 
+    @PostConstruct
+    public void initializeLiquidityPools() {
+        initializeLiquidityPools(Map.of(
+                "BTC", 100000.0, "ETH", 400000.0, "USDT", 1000000.0, "NCOIN", 10000000.0, "CCOIN", 2000000.0
+        ));
+    }
+
     /*
      * Los usuarios deben comprar primero USDT para poder cambiar por tokens
      * El dinero fiat no vale para comprar tokens
@@ -77,9 +80,11 @@ public class WalletService {
         Optional<Wallet> liquidityWalletOpt = walletRepository.findByAddress("LP-" + symbol);
         Optional<Wallet> usdtLiquidityWalletOpt = walletRepository.findByAddress("LP-USDT");
 
-        if (optionalWallet.isEmpty()) return "❌ Wallet not found!";
-        if (liquidityWalletOpt.isEmpty()) return "❌ Liquidity pool for " + symbol + " not found!";
-        if (usdtLiquidityWalletOpt.isEmpty()) return "❌ Liquidity pool for USDT not found!";
+        if (optionalWallet.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Wallet not found!");
+        if (liquidityWalletOpt.isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Liquidity pool for " + symbol + " not found!");
+        if (usdtLiquidityWalletOpt.isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Liquidity pool for USDT not found!");
 
         Wallet userWallet = optionalWallet.get();
         Wallet liquidityWallet = liquidityWalletOpt.get();
@@ -90,7 +95,7 @@ public class WalletService {
 
         if (symbol.equals("USDT")) {
             if (userWallet.getBalance() < totalCost) {
-                return "❌ Insufficient fiat balance to buy USDT!";
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Insufficient fiat balance to buy USDT!");
             }
 
             userWallet.setBalance(userWallet.getBalance() - totalCost);
@@ -109,7 +114,7 @@ public class WalletService {
                 .findFirst();
 
         if (usdtAssetOpt.isEmpty() || usdtAssetOpt.get().getQuantity() < totalCost) {
-            return "❌ Insufficient USDT balance! You must buy USDT first.";
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Insufficient USDT balance! You must buy USDT first.");
         }
 
         updateWalletAssets(userWallet, "USDT", -totalCost);
@@ -214,6 +219,8 @@ public class WalletService {
             newAsset.setWallet(wallet);
             wallet.getAssets().add(newAsset);
         }
+
+        walletRepository.save(wallet);
     }
 
     private void recordTransaction(Wallet sender, Wallet receiver, String assetSymbol, double quantity, double price, String type) {
