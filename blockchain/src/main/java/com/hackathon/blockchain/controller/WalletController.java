@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,6 +71,13 @@ public class WalletController {
                 ResponseMessageDto.builder()
                         .message(walletService.sellAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))
                         .build(),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<Object> balance(@AuthenticationPrincipal User user) {
+        return new ResponseEntity<>(
+                walletService.getWalletBalance(user.getId()),
                 HttpStatus.OK);
     }
 

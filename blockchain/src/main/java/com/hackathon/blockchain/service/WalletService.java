@@ -307,9 +307,8 @@ public class WalletService {
 
     public Map<String, Object> getWalletBalance(Long userId) {
         Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
-
         if (optionalWallet.isEmpty()) {
-            return Map.of("error", "Wallet not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found");
         }
 
         Wallet wallet = optionalWallet.get();
