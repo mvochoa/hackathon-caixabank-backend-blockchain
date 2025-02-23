@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,7 @@ public class WalletService {
         Wallet liquidityWallet = liquidityWalletOpt.get();
         Wallet usdtLiquidityWallet = usdtLiquidityWalletOpt.get();
 
-        double price = marketDataService.fetchLivePriceForAsset(symbol);
+        double price = marketDataService.fetchLivePriceForAsset(symbol).doubleValue();
         double totalCost = quantity * price;
 
         if (symbol.equals("USDT")) {
@@ -141,7 +142,7 @@ public class WalletService {
         Wallet userWallet = optionalWallet.get();
         Wallet liquidityWallet = liquidityWalletOpt.get();
 
-        double price = marketDataService.fetchLivePriceForAsset(symbol);
+        double price = marketDataService.fetchLivePriceForAsset(symbol).doubleValue();
         double totalRevenue = quantity * price;
 
         Optional<Asset> existingAsset = userWallet.getAssets().stream()
@@ -265,7 +266,7 @@ public class WalletService {
             double totalValue = 0.0;
 
             for (Asset asset : wallet.getAssets()) {
-                double marketPrice = marketDataService.fetchLivePriceForAsset(asset.getSymbol());
+                double marketPrice = marketDataService.fetchLivePriceForAsset(asset.getSymbol()).doubleValue();
                 double assetValue = asset.getQuantity() * marketPrice;
                 totalValue += assetValue;
 
@@ -303,13 +304,13 @@ public class WalletService {
         }
 
         Wallet wallet = optionalWallet.get();
-        Map<String, Double> assetPrices = marketDataService.fetchLiveMarketPrices();
+        Map<String, BigDecimal> assetPrices = marketDataService.fetchLiveMarketPrices();
 
         Map<String, Double> assetsMap = new HashMap<>();
         double netWorth = wallet.getBalance();
 
         for (Asset asset : wallet.getAssets()) {
-            double currentPrice = assetPrices.getOrDefault(asset.getSymbol(), 0.0);
+            double currentPrice = assetPrices.getOrDefault(asset.getSymbol(), BigDecimal.valueOf(0.0)).doubleValue();
             double assetValue = asset.getQuantity() * currentPrice;
             assetsMap.put(asset.getSymbol(), assetValue);
             netWorth += assetValue;

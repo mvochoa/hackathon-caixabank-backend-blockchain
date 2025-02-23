@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @RestController
@@ -20,7 +21,7 @@ public class MarketController {
     private final MarketDataService marketDataService;
 
     @GetMapping("/prices")
-    public ResponseEntity<Map<String, Double>> prices() {
+    public ResponseEntity<Map<String, BigDecimal>> prices() {
         return new ResponseEntity<>(
                 marketDataService.fetchLiveMarketPrices(),
                 HttpStatus.OK);
@@ -32,7 +33,7 @@ public class MarketController {
     ) {
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
-                        .message(String.format("Current price of %s: $%f", symbol.toUpperCase(), marketDataService.fetchLivePriceForAsset(symbol.toUpperCase())))
+                        .message(String.format("Current price of %s: $%s", symbol.toUpperCase(), marketDataService.fetchLivePriceForAsset(symbol.toUpperCase()).stripTrailingZeros().toPlainString()))
                         .build(),
                 HttpStatus.OK);
     }
