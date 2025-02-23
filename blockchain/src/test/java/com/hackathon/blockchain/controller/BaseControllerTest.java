@@ -86,7 +86,9 @@ public class BaseControllerTest {
 
         Asset asset = Asset.builder().symbol("USDT").quantity(1000.0).wallet(wallet).build();
         assetRepository.save(asset);
+        assetRepository.save(asset.toBuilder().id(null).symbol("BTC").build());
 
         return walletRepository.findById(wallet.getId()).get();
     }
+
 }

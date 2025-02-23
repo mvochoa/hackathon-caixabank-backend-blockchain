@@ -54,10 +54,10 @@ public class WalletService {
                 Wallet liquidityWallet = new Wallet();
                 liquidityWallet.setAddress(liquidityWalletAddress);
                 liquidityWallet.setBalance(0.0);
-                walletRepository.save(liquidityWallet);
 
                 Asset asset = new Asset(null, symbol, initialQuantity, 0.0, liquidityWallet);
                 liquidityWallet.getAssets().add(asset);
+                walletRepository.save(liquidityWallet);
             }
         }
     }
@@ -141,8 +141,9 @@ public class WalletService {
         Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
         Optional<Wallet> liquidityWalletOpt = walletRepository.findByAddress("LP-" + symbol);
 
-        if (optionalWallet.isEmpty()) return "❌ Wallet not found!";
-        if (liquidityWalletOpt.isEmpty()) return "❌ Liquidity pool for " + symbol + " not found!";
+        if (optionalWallet.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Wallet not found!");
+        if (liquidityWalletOpt.isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Liquidity pool for " + symbol + " not found!");
 
         Wallet userWallet = optionalWallet.get();
         Wallet liquidityWallet = liquidityWalletOpt.get();
@@ -155,13 +156,13 @@ public class WalletService {
                 .findFirst();
 
         if (existingAsset.isEmpty() || existingAsset.get().getQuantity() < quantity) {
-            return "❌ Not enough assets to sell!";
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Not enough assets to sell!");
         }
 
         // CASO 1: Venta de USDT (Recibo dinero fiat)
         if (symbol.equals("USDT")) {
             if (liquidityWallet.getAssets().stream().anyMatch(a -> a.getSymbol().equals("USDT") && a.getQuantity() < quantity)) {
-                return "❌ Not enough USDT liquidity!";
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Not enough USDT liquidity!");
             }
 
             userWallet.setBalance(userWallet.getBalance() + totalRevenue);
@@ -171,7 +172,8 @@ public class WalletService {
         } else {
             // CASO 2: Venta de otros assets (Recibo USDT)
             Optional<Wallet> usdtLiquidityWalletOpt = walletRepository.findByAddress("LP-USDT");
-            if (usdtLiquidityWalletOpt.isEmpty()) return "❌ USDT liquidity pool not found!";
+            if (usdtLiquidityWalletOpt.isEmpty())
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ USDT liquidity pool not found!");
             Wallet usdtLiquidityWallet = usdtLiquidityWalletOpt.get();
 
             Optional<Asset> usdtAssetOpt = usdtLiquidityWallet.getAssets().stream()
@@ -179,7 +181,7 @@ public class WalletService {
                     .findFirst();
 
             if (usdtAssetOpt.isEmpty() || usdtAssetOpt.get().getQuantity() < totalRevenue) {
-                return "❌ Not enough USDT in liquidity pool!";
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Not enough USDT in liquidity pool!");
             }
 
             updateWalletAssets(userWallet, "USDT", totalRevenue);

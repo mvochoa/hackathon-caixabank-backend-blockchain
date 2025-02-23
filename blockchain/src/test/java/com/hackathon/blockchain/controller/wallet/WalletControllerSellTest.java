@@ -17,8 +17,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class WalletControllerBuyTest extends BaseControllerTest {
-    public final String urlBase = "/wallet/buy";
+public class WalletControllerSellTest extends BaseControllerTest {
+    public final String urlBase = "/wallet/sell";
     BuyAndSellAssetWalletDto data = BuyAndSellAssetWalletDto.builder()
             .symbol("BTC")
             .quantity(0.00001)
@@ -32,35 +32,35 @@ public class WalletControllerBuyTest extends BaseControllerTest {
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_ok() throws Exception {
+    public void walletController_sell_ok() throws Exception {
         mockMvc.perform(post(urlBase)
                         .contentType("application/json")
                         .content(mapper.writeValueAsBytes(data)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("✅ Asset purchased successfully!")
+                                .message("✅ Asset sold successfully!")
                                 .build()),
                         JsonCompareMode.STRICT));
     }
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_onlyUSDT() throws Exception {
+    public void walletController_sell_onlyUSDT() throws Exception {
         mockMvc.perform(post(urlBase)
                         .contentType("application/json")
                         .content(mapper.writeValueAsBytes(data.toBuilder().symbol("USDT").build())))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("✅ USDT purchased successfully!")
+                                .message("✅ Asset sold successfully!")
                                 .build()),
                         JsonCompareMode.STRICT));
     }
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenWalletUserNotExists() throws Exception {
+    public void walletController_sell_whenWalletUserNotExists() throws Exception {
         walletRepository.deleteAll();
 
         mockMvc.perform(post(urlBase)
@@ -76,7 +76,7 @@ public class WalletControllerBuyTest extends BaseControllerTest {
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenLiquidityWalletNotFound() throws Exception {
+    public void walletController_sell_whenLiquidityWalletNotFound() throws Exception {
         walletRepository.deleteById(walletRepository.findByAddress(String.format("LP-%s", data.getSymbol())).get().getId());
 
         mockMvc.perform(post(urlBase)
@@ -92,24 +92,10 @@ public class WalletControllerBuyTest extends BaseControllerTest {
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenUSDTLiquidityWalletNotFound() throws Exception {
-        walletRepository.deleteById(walletRepository.findByAddress("LP-USDT").get().getId());
-
-        mockMvc.perform(post(urlBase)
-                        .contentType("application/json")
-                        .content(mapper.writeValueAsBytes(data)))
-                .andExpect(status().isConflict())
-                .andExpect(content().json(
-                        mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("❌ Liquidity pool for USDT not found!")
-                                .build()),
-                        JsonCompareMode.STRICT));
-    }
-
-    @Test
-    @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenUSDTLiquidityWalletBalanceEmpty() throws Exception {
-        walletRepository.save(userRepository.findByUsername("test").get().getWallet().toBuilder().balance(0.0).build());
+    public void walletController_sell_whenUSDTLiquidityBalanceEmptyAndSellUSDT() throws Exception {
+        Wallet wallet = walletRepository.findByAddress("LP-USDT").get();
+        Asset asset = ((List<Asset>) assetRepository.findAll()).stream().filter(x -> x.getWallet().getId().equals(wallet.getId()) && x.getSymbol().equals("USDT")).findFirst().get();
+        assetRepository.save(asset.toBuilder().quantity(0.0).build());
 
         mockMvc.perform(post(urlBase)
                         .contentType("application/json")
@@ -117,15 +103,32 @@ public class WalletControllerBuyTest extends BaseControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(content().json(
                         mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("❌ Insufficient fiat balance to buy USDT!")
+                                .message("❌ Not enough USDT liquidity!")
                                 .build()),
                         JsonCompareMode.STRICT));
     }
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenAssetUSDTBalanceInsufficient() throws Exception {
-        Wallet wallet = userRepository.findByUsername("test").get().getWallet();
+    public void walletController_sell_whenUSDTLiquidityNotFound() throws Exception {
+        Wallet wallet = walletRepository.findByAddress("LP-USDT").get();
+        walletRepository.deleteById(wallet.getId());
+
+        mockMvc.perform(post(urlBase)
+                        .contentType("application/json")
+                        .content(mapper.writeValueAsBytes(data)))
+                .andExpect(status().isConflict())
+                .andExpect(content().json(
+                        mapper.writeValueAsString(ResponseMessageDto.builder()
+                                .message("❌ USDT liquidity pool not found!")
+                                .build()),
+                        JsonCompareMode.STRICT));
+    }
+
+    @Test
+    @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void walletController_sell_whenUSDTLiquidityBalanceEmpty() throws Exception {
+        Wallet wallet = walletRepository.findByAddress("LP-USDT").get();
         Asset asset = ((List<Asset>) assetRepository.findAll()).stream().filter(x -> x.getWallet().getId().equals(wallet.getId()) && x.getSymbol().equals("USDT")).findFirst().get();
         assetRepository.save(asset.toBuilder().quantity(0.0).build());
 
@@ -135,25 +138,7 @@ public class WalletControllerBuyTest extends BaseControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(content().json(
                         mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("❌ Insufficient USDT balance! You must buy USDT first.")
-                                .build()),
-                        JsonCompareMode.STRICT));
-    }
-
-    @Test
-    @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    public void walletController_buy_whenAssetUSDTNotExists() throws Exception {
-        Wallet wallet = userRepository.findByUsername("test").get().getWallet();
-        Asset asset = ((List<Asset>) assetRepository.findAll()).stream().filter(x -> x.getWallet().getId().equals(wallet.getId()) && x.getSymbol().equals("USDT")).findFirst().get();
-        assetRepository.deleteById(asset.getId());
-
-        mockMvc.perform(post(urlBase)
-                        .contentType("application/json")
-                        .content(mapper.writeValueAsBytes(data)))
-                .andExpect(status().isConflict())
-                .andExpect(content().json(
-                        mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("❌ Insufficient USDT balance! You must buy USDT first.")
+                                .message("❌ Not enough USDT in liquidity pool!")
                                 .build()),
                         JsonCompareMode.STRICT));
     }

@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class BuyAssetWalletDto {
+public class BuyAndSellAssetWalletDto {
     @NotBlank
     private String symbol;
 

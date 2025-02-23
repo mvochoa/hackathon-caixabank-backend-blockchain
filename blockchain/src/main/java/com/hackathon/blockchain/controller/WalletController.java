@@ -2,7 +2,7 @@ package com.hackathon.blockchain.controller;
 
 import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.dto.WalletKeyDto;
-import com.hackathon.blockchain.dto.wallet.BuyAssetWalletDto;
+import com.hackathon.blockchain.dto.wallet.BuyAndSellAssetWalletDto;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.UserRepository;
@@ -56,10 +56,19 @@ public class WalletController {
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<ResponseMessageDto> buy(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAssetWalletDto buyAssetWalletDto) {
+    public ResponseEntity<ResponseMessageDto> buy(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAndSellAssetWalletDto buyAndSellAssetWalletDto) {
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
-                        .message(walletService.buyAsset(user.getId(), buyAssetWalletDto.getSymbol(), buyAssetWalletDto.getQuantity()))
+                        .message(walletService.buyAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))
+                        .build(),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/sell")
+    public ResponseEntity<ResponseMessageDto> sell(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAndSellAssetWalletDto buyAndSellAssetWalletDto) {
+        return new ResponseEntity<>(
+                ResponseMessageDto.builder()
+                        .message(walletService.sellAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))
                         .build(),
                 HttpStatus.OK);
     }
