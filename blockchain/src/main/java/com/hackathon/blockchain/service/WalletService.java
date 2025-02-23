@@ -1,10 +1,13 @@
 package com.hackathon.blockchain.service;
 
+import com.hackathon.blockchain.dto.transaction.HistoryTransactionDto;
+import com.hackathon.blockchain.mapper.TransactionMapper;
 import com.hackathon.blockchain.model.Asset;
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.repository.TransactionRepository;
+import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -29,6 +32,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class WalletService {
 
+    private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final MarketDataService marketDataService;
@@ -338,18 +342,29 @@ public class WalletService {
      * - "sent": transacciones enviadas (donde la wallet es remitente)
      * - "received": transacciones recibidas (donde la wallet es destinataria)
      */
-    public Map<String, List<Transaction>> getWalletTransactions(Long walletId) {
+    public HistoryTransactionDto getWalletTransactions(Long walletId) {
         Optional<Wallet> walletOpt = walletRepository.findById(walletId);
         if (walletOpt.isEmpty()) {
-            return Map.of("error", List.of());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found");
         }
         Wallet wallet = walletOpt.get();
+
         List<Transaction> sentTransactions = transactionRepository.findBySenderWallet(wallet);
         List<Transaction> receivedTransactions = transactionRepository.findByReceiverWallet(wallet);
-        Map<String, List<Transaction>> result = new HashMap<>();
-        result.put("sent", sentTransactions);
-        result.put("received", receivedTransactions);
-        return result;
+
+        return HistoryTransactionDto.builder()
+                .sent(sentTransactions.stream().map(TransactionMapper::entityToDto).toList())
+                .received(receivedTransactions.stream().map(TransactionMapper::entityToDto).toList())
+                .build();
+    }
+
+    public HistoryTransactionDto getWalletTransactionsByUer(Long userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        
+        return getWalletTransactions(userOpt.get().getWallet().getId());
     }
 
     // RETO BACKEND

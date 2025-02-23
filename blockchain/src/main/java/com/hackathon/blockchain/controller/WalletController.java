@@ -1,8 +1,9 @@
 package com.hackathon.blockchain.controller;
 
+import com.hackathon.blockchain.dto.BuyAndSellAssetWalletDto;
 import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.dto.WalletKeyDto;
-import com.hackathon.blockchain.dto.wallet.BuyAndSellAssetWalletDto;
+import com.hackathon.blockchain.dto.transaction.HistoryTransactionDto;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.UserRepository;
@@ -78,6 +79,13 @@ public class WalletController {
     public ResponseEntity<Object> balance(@AuthenticationPrincipal User user) {
         return new ResponseEntity<>(
                 walletService.getWalletBalance(user.getId()),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<HistoryTransactionDto> transactions(@AuthenticationPrincipal User user) {
+        return new ResponseEntity<>(
+                walletService.getWalletTransactionsByUer(user.getId()),
                 HttpStatus.OK);
     }
 

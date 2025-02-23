@@ -1,8 +1,8 @@
 package com.hackathon.blockchain.controller.wallet;
 
 import com.hackathon.blockchain.controller.BaseControllerTest;
+import com.hackathon.blockchain.dto.BuyAndSellAssetWalletDto;
 import com.hackathon.blockchain.dto.ResponseMessageDto;
-import com.hackathon.blockchain.dto.wallet.BuyAndSellAssetWalletDto;
 import com.hackathon.blockchain.model.Asset;
 import com.hackathon.blockchain.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;

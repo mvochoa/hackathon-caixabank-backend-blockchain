@@ -1,4 +1,4 @@
-package com.hackathon.blockchain.dto.wallet;
+package com.hackathon.blockchain.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
