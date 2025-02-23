@@ -1,5 +1,6 @@
 package com.hackathon.blockchain.controller.auth;
 
+import com.hackathon.blockchain.controller.BaseControllerTest;
 import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.dto.auth.SessionDto;
 import com.hackathon.blockchain.dto.auth.SessionUserDto;
@@ -12,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthControllerCheckSessionTest extends BaseAuthControllerTest {
+public class AuthControllerCheckSessionTest extends BaseControllerTest {
     public final String urlBase = "/auth/check-session";
     public final SessionDto data = SessionDto.builder()
             .user(SessionUserDto.builder()

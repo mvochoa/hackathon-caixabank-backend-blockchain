@@ -1,5 +1,6 @@
 package com.hackathon.blockchain.controller.auth;
 
+import com.hackathon.blockchain.controller.BaseControllerTest;
 import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.dto.auth.LoginUserDto;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthControllerLoginTest extends BaseAuthControllerTest {
+public class AuthControllerLoginTest extends BaseControllerTest {
     public final String urlBase = "/auth/login";
     public final LoginUserDto data = LoginUserDto.builder()
             .username(user.getUsername())

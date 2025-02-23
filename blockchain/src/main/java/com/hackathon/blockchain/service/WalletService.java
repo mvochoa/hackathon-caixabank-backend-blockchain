@@ -261,8 +261,7 @@ public class WalletService {
     public void updateWalletBalancesScheduled() {
         log.info("🔄 Updating wallet net worths based on live market prices...");
 
-        List<Wallet> wallets = walletRepository.findAll();
-        for (Wallet wallet : wallets) {
+        for (Wallet wallet : walletRepository.findAll()) {
             double totalValue = 0.0;
 
             for (Asset asset : wallet.getAssets()) {

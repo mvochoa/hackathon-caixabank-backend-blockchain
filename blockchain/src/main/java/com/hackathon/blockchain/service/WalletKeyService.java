@@ -21,10 +21,10 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Optional;
 
+import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
+
 @Service
 public class WalletKeyService {
-
-    private static final String KEYS_FOLDER = "keys";
     private final WalletKeyRepository walletKeyRepository;
 
     public WalletKeyService(WalletKeyRepository walletKeyRepository) throws IOException {
