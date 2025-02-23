@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class MarketControllerPriceTest extends BaseControllerTest {
@@ -17,6 +18,6 @@ public class MarketControllerPriceTest extends BaseControllerTest {
     public void marketController_prices_ok() throws Exception {
         mockMvc.perform(get(urlBase, "BTC"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.BTC").isNumber());
+                .andExpect(content().string(containsString("Current price of ")));
     }
 }

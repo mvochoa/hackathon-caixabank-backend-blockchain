@@ -1,5 +1,6 @@
 package com.hackathon.blockchain.controller;
 
+import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.service.MarketDataService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,13 @@ public class MarketController {
     }
 
     @GetMapping("/price/{symbol}")
-    public ResponseEntity<Map<String, Double>> price(
+    public ResponseEntity<ResponseMessageDto> price(
             @PathVariable String symbol
     ) {
         return new ResponseEntity<>(
-                Map.of(symbol, marketDataService.fetchLivePriceForAsset(symbol)),
+                ResponseMessageDto.builder()
+                        .message(String.format("Current price of %s: $%f", symbol, marketDataService.fetchLivePriceForAsset(symbol)))
+                        .build(),
                 HttpStatus.OK);
     }
 }
