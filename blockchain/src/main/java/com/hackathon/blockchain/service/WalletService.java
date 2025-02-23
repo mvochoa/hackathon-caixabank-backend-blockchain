@@ -242,7 +242,7 @@ public class WalletService {
         Wallet wallet = new Wallet();
         wallet.setUser(user);
         wallet.setAddress(generateWalletAddress());
-        wallet.setBalance(10000.0);
+        wallet.setBalance(100000.0);
         wallet.setAccountStatus("ACTIVE");
 
         walletRepository.save(wallet);
