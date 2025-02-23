@@ -32,7 +32,7 @@ public class MarketController {
     ) {
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
-                        .message(String.format("Current price of %s: $%f", symbol, marketDataService.fetchLivePriceForAsset(symbol)))
+                        .message(String.format("Current price of %s: $%f", symbol.toUpperCase(), marketDataService.fetchLivePriceForAsset(symbol.toUpperCase())))
                         .build(),
                 HttpStatus.OK);
     }

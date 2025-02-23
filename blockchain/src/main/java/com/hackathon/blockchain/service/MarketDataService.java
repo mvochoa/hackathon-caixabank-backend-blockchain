@@ -23,7 +23,7 @@ public class MarketDataService {
     public Double fetchLivePriceForAsset(String symbol) {
         Double price = fetchLiveMarketPrices().get(symbol);
         if (price == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Current price of %s: $%f", symbol, 0.0));
         }
 
         return price;
