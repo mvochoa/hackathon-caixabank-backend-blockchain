@@ -4,10 +4,9 @@ import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.WalletKeyRepository;
 import com.hackathon.blockchain.utils.PemUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,13 +21,21 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
-public class WalletKeyService {
-    @Value("${app.keys.dir}")
-    private String KEYS_FOLDER;
+import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
 
+@Service
+public class WalletKeyService {
     private final WalletKeyRepository walletKeyRepository;
+
+    public WalletKeyService(WalletKeyRepository walletKeyRepository) throws IOException {
+        this.walletKeyRepository = walletKeyRepository;
+        // Asegurarse de que la carpeta /keys exista
+        File dir = new File(KEYS_FOLDER);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        System.out.println("Directorio de claves: " + dir.getAbsolutePath());
+    }
 
     public Optional<WalletKey> getKeysByWallet(Wallet wallet) {
         return walletKeyRepository.findByWallet(wallet);

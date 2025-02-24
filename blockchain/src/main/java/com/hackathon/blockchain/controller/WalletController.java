@@ -11,8 +11,7 @@ import com.hackathon.blockchain.service.SmartContractEvaluationService;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,12 +25,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 
+import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
+
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping("/wallet")
 public class WalletController {
-    @Value("${app.keys.dir}")
-    private String KEYS_FOLDER;
 
     private final SmartContractEvaluationService smartContractEvaluationService;
     private final UserRepository userRepository;

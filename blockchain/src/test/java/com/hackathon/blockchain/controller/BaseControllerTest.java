@@ -28,12 +28,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
-@SpringBootTest(
-        properties = {
-                "server.port = 3001",
-                "app.keys.dir = keys"
-        }
-)
+@SpringBootTest
 @AutoConfigureMockMvc
 public class BaseControllerTest {
     @Autowired
