@@ -36,4 +36,13 @@ public class BlockchainController {
                 HttpStatus.OK);
     }
 
+    @GetMapping("/validate")
+    public ResponseEntity<ResponseMessageDto> validate() {
+        return new ResponseEntity<>(
+                ResponseMessageDto.builder()
+                        .message(String.format("Blockchain valid: %s", blockchainService.isChainValid()))
+                        .build(),
+                HttpStatus.OK);
+    }
+
 }
