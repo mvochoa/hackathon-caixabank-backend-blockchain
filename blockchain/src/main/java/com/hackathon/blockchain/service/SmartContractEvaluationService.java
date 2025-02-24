@@ -1,6 +1,6 @@
 package com.hackathon.blockchain.service;
 
-import com.hackathon.blockchain.dto.SmartContractDto;
+import com.hackathon.blockchain.dto.CreateSmartContractDto;
 import com.hackathon.blockchain.model.SmartContract;
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.model.WalletKey;
@@ -38,7 +38,7 @@ public class SmartContractEvaluationService {
     private final WalletKeyService walletKeyService; // Para obtener la clave pública del emisor
     private final SpelExpressionParser parser;
 
-    public SmartContractDto create(SmartContractDto contract) {
+    public SmartContract create(CreateSmartContractDto contract) {
         SmartContract smartContract = SmartContract.builder()
                 .issuerWalletId(contract.getIssuerWalletId())
                 .name(contract.getName())
@@ -66,9 +66,7 @@ public class SmartContractEvaluationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ The smart contract could not be signed!");
         }
 
-        return contract.toBuilder()
-                .digitalSignature(smartContractRepository.save(smartContract).getDigitalSignature())
-                .build();
+        return smartContractRepository.save(smartContract);
     }
 
     /**

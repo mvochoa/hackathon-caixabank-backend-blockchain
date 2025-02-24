@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class SmartContractDto {
+public class CreateSmartContractDto {
     @NotBlank
     private String name;
 
@@ -32,6 +32,4 @@ public class SmartContractDto {
     @NotNull
     @Positive
     private Long issuerWalletId;
-
-    private String digitalSignature;
 }

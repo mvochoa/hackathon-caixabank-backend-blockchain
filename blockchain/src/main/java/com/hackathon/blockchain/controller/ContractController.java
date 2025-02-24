@@ -1,6 +1,7 @@
 package com.hackathon.blockchain.controller;
 
-import com.hackathon.blockchain.dto.SmartContractDto;
+import com.hackathon.blockchain.dto.CreateSmartContractDto;
+import com.hackathon.blockchain.model.SmartContract;
 import com.hackathon.blockchain.service.SmartContractEvaluationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -19,9 +20,9 @@ public class ContractController {
     private final SmartContractEvaluationService smartContractEvaluationService;
 
     @PostMapping("/create")
-    public ResponseEntity<SmartContractDto> create(@Valid @RequestBody SmartContractDto smartContractDto) {
+    public ResponseEntity<SmartContract> create(@Valid @RequestBody CreateSmartContractDto createSmartContractDto) {
         return new ResponseEntity<>(
-                smartContractEvaluationService.create(smartContractDto),
+                smartContractEvaluationService.create(createSmartContractDto),
                 HttpStatus.OK);
     }
 
