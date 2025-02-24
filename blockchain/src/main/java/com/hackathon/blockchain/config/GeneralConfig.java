@@ -2,6 +2,7 @@ package com.hackathon.blockchain.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -16,5 +17,10 @@ public class GeneralConfig {
     @Bean
     public HttpSessionSecurityContextRepository httpSessionSecurityContextRepository() {
         return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
+    public SpelExpressionParser spelExpressionParser() {
+        return new SpelExpressionParser();
     }
 }

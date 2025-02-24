@@ -25,7 +25,7 @@ public class Asset {
     private Long id;
     private String symbol;
     private Double quantity;
-    private Double purchasePrice;
+    private Double purchasePrice = 0.0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id")

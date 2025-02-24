@@ -8,7 +8,7 @@ public class BlockchainMapper {
         return BlockchainDto.builder()
                 .id(block.getId())
                 .blockIndex(block.getBlockIndex())
-                .timestamp(block.getTimestamp().getTime())
+                .timestamp(block.getTimestamp())
                 .previousHash(block.getPreviousHash())
                 .nonce(block.getNonce())
                 .hash(block.getHash())

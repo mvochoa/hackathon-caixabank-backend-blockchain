@@ -14,7 +14,6 @@ import lombok.Setter;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Builder(toBuilder = true)
@@ -31,7 +30,7 @@ public class Block {
     private Boolean isGenesis = false;
     private Long nonce;
     private String previousHash;
-    private Date timestamp;
+    private Long timestamp;
     private Long blockIndex;
 
     @OneToMany(mappedBy = "block", cascade = CascadeType.ALL)
@@ -43,7 +42,6 @@ public class Block {
         String base = this.getBlockIndex() + this.getPreviousHash();
 
         while (!this.getHash().startsWith("0000")) {
-            this.setTimestamp(new Date());
             this.setHash(DigestUtils.sha256Hex(base + this.getNonce() + this.getTimestamp()));
             this.setNonce(this.getNonce() + 1);
         }

@@ -1,13 +1,10 @@
 package com.hackathon.blockchain.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,15 +22,15 @@ public class SmartContract {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "issuer_wallet_id", insertable = false, updatable = false)
     private Long issuerWalletId;
     private String name;
+
+    @Lob
     private String conditionExpression;
     private String action;
     private Double actionValue;
-    private String digitalSignature;
+    private String status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issuer_wallet_id")
-    private Wallet issuerWallet;
+    @Lob
+    private String digitalSignature;
 }

@@ -1,36 +1,74 @@
 package com.hackathon.blockchain.service;
 
+import com.hackathon.blockchain.dto.SmartContractDto;
 import com.hackathon.blockchain.model.SmartContract;
 import com.hackathon.blockchain.model.Transaction;
+import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.SmartContractRepository;
 import com.hackathon.blockchain.repository.TransactionRepository;
+import com.hackathon.blockchain.repository.WalletKeyRepository;
+import com.hackathon.blockchain.repository.WalletRepository;
 import com.hackathon.blockchain.utils.SignatureUtil;
+import lombok.AllArgsConstructor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SignatureException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class SmartContractEvaluationService {
 
+    private final WalletKeyRepository walletKeyRepository;
+    private final WalletRepository walletRepository;
     private final SmartContractRepository smartContractRepository;
     private final TransactionRepository transactionRepository;
     private final WalletService walletService;
     private final WalletKeyService walletKeyService; // Para obtener la clave pública del emisor
-    private final SpelExpressionParser parser = new SpelExpressionParser();
+    private final SpelExpressionParser parser;
 
-    public SmartContractEvaluationService(SmartContractRepository smartContractRepository,
-                                          TransactionRepository transactionRepository,
-                                          WalletService walletService,
-                                          WalletKeyService walletKeyService) {
-        this.smartContractRepository = smartContractRepository;
-        this.transactionRepository = transactionRepository;
-        this.walletService = walletService;
-        this.walletKeyService = walletKeyService;
+    public SmartContractDto create(SmartContractDto contract) {
+        SmartContract smartContract = SmartContract.builder()
+                .issuerWalletId(contract.getIssuerWalletId())
+                .name(contract.getName())
+                .conditionExpression(contract.getConditionExpression())
+                .action(contract.getAction())
+                .actionValue(contract.getActionValue())
+                .build();
+
+        Optional<WalletKey> optionalWalletKey = walletKeyRepository.findByWalletId(smartContract.getIssuerWalletId());
+        if (optionalWalletKey.isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Wallet Key not found!");
+
+        WalletKey walletKey = optionalWalletKey.get();
+        PrivateKey privateKey = walletKeyService.getPrivateKeyForWallet(walletKey.getWallet().getId());
+        String dataToSign = contract.getName() +
+                contract.getConditionExpression() +
+                contract.getAction() +
+                contract.getActionValue() +
+                contract.getIssuerWalletId();
+
+        try {
+            smartContract.setDigitalSignature(SignatureUtil.signature(dataToSign, privateKey));
+        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ The smart contract could not be signed!");
+        }
+
+        return contract.toBuilder()
+                .digitalSignature(smartContractRepository.save(smartContract).getDigitalSignature())
+                .build();
     }
 
     /**

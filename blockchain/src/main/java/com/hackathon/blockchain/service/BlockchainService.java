@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -53,6 +54,7 @@ public class BlockchainService {
                 .blockIndex(0L)
                 .isGenesis(true)
                 .previousHash("0")
+                .timestamp(new Date().getTime())
                 .transactions(new ArrayList<>())
                 .build();
 
@@ -71,6 +73,7 @@ public class BlockchainService {
                 .blockIndex(previousBlock.getBlockIndex() + 1)
                 .isGenesis(false)
                 .previousHash(previousBlock.getHash())
+                .timestamp(new Date().getTime())
                 .build();
 
         block.getCalculateHash();

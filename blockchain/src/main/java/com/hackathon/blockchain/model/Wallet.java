@@ -47,9 +47,6 @@ public class Wallet {
     @OneToOne(mappedBy = "wallet", cascade = CascadeType.ALL)
     private WalletKey walletKey;
 
-    @OneToMany(mappedBy = "issuerWallet", cascade = CascadeType.ALL)
-    private List<SmartContract> smartContracts;
-
     @OneToMany(mappedBy = "senderWallet", cascade = CascadeType.ALL)
     private List<Transaction> transactionSender;
 
