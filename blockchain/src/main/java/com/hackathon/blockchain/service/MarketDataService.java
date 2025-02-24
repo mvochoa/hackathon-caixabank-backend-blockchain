@@ -24,7 +24,7 @@ public class MarketDataService {
     public BigDecimal fetchLivePriceForAsset(String symbol) {
         BigDecimal price = fetchLiveMarketPrices().get(symbol);
         if (price == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Current price of %s: $%g", symbol, 0.0));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("❌ Asset not found or price unavailable: %s", symbol));
         }
 
         return price;
