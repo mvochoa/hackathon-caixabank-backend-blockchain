@@ -1,6 +1,7 @@
 package com.hackathon.blockchain.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hackathon.blockchain.StartupRunner;
 import com.hackathon.blockchain.model.Asset;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.Wallet;
@@ -14,7 +15,6 @@ import com.hackathon.blockchain.repository.WalletKeyRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
 import com.hackathon.blockchain.service.BlockchainService;
 import com.hackathon.blockchain.service.SmartContractEvaluationService;
-import com.hackathon.blockchain.service.UserService;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +44,6 @@ public class BaseControllerTest {
     protected UserRepository userRepository;
 
     @Autowired
-    protected UserService userService;
-
-    @Autowired
     protected WalletRepository walletRepository;
 
     @Autowired
@@ -65,9 +62,6 @@ public class BaseControllerTest {
     protected SmartContractRepository smartContractRepository;
 
     @Autowired
-    protected TransactionRepository transactionRepository;
-
-    @Autowired
     protected BlockchainService blockchainService;
 
     @Autowired
@@ -75,6 +69,12 @@ public class BaseControllerTest {
 
     @Autowired
     protected SmartContractEvaluationService smartContractEvaluationService;
+
+    @Autowired
+    protected TransactionRepository transactionRepository;
+
+    @Autowired
+    protected StartupRunner startupRunner;
 
     protected final String userPassword = "password";
     protected final User user = User.builder()
@@ -92,8 +92,8 @@ public class BaseControllerTest {
         assetRepository.deleteAll();
         userRepository.deleteAll();
         blockRepository.deleteAll();
-        walletService.initializeLiquidityPools();
-        blockchainService.mineBlockGenesis();
+        startupRunner.init();
+        startupRunner.mineBlockGenesis();
         userRepository.save(user.toBuilder().password(passwordEncoder.encode(userPassword)).build());
     }
 
@@ -101,7 +101,7 @@ public class BaseControllerTest {
         String address = walletService.createWalletForUser(Objects.requireNonNull(userRepository.findByUsername("test").orElse(null)));
         Wallet wallet = walletRepository.findByAddress(address.replace("✅ Wallet successfully created! Address: ", "")).orElse(null);
 
-        Asset asset = Asset.builder().symbol("USDT").quantity(1000.0).wallet(wallet).build();
+        Asset asset = Asset.builder().symbol("USDT").quantity(1000000000000.0).wallet(wallet).build();
         assetRepository.save(asset);
         assetRepository.save(asset.toBuilder().id(null).symbol("BTC").build());
 

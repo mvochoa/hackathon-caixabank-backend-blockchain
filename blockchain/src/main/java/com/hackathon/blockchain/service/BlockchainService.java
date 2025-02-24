@@ -6,7 +6,6 @@ import com.hackathon.blockchain.model.Block;
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.repository.BlockRepository;
 import com.hackathon.blockchain.repository.TransactionRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -16,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -23,6 +23,7 @@ public class BlockchainService {
 
     private final TransactionRepository transactionRepository;
     private final BlockRepository blockRepository;
+    private final SmartContractEvaluationService smartContractEvaluationService;
 
     public boolean isChainValid() {
         List<Block> chain = (List<Block>) blockRepository.findAll(Sort.by(Sort.Direction.ASC, "blockIndex"));
@@ -48,20 +49,6 @@ public class BlockchainService {
 
         System.out.println("✅ Blockchain is valid");
         return true;
-    }
-
-    @PostConstruct
-    public Block mineBlockGenesis() {
-        Block block = Block.builder()
-                .blockIndex(0L)
-                .isGenesis(true)
-                .previousHash("0")
-                .timestamp(new Date().getTime())
-                .transactions(new ArrayList<>())
-                .build();
-
-        block.getCalculateHash();
-        return blockRepository.save(block);
     }
 
     public String mine() {
@@ -91,5 +78,13 @@ public class BlockchainService {
             blockchain.add(BlockchainMapper.entityToDto(block));
         }
         return blockchain;
+    }
+
+    public void validateTransaction(Long transactionId, String symbol) {
+        smartContractEvaluationService.evaluateSmartContracts();
+        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
+        if (transaction.isPresent() && transaction.get().getStatus().equals("CANCELED")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("❌ Transaction blocked by smart contract conditions for %s", symbol));
+        }
     }
 }

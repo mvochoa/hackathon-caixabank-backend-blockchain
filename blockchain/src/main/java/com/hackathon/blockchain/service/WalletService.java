@@ -9,7 +9,6 @@ import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.repository.TransactionRepository;
 import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,6 +35,7 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final MarketDataService marketDataService;
+    private final BlockchainService blockchainService;
 
     public Optional<Wallet> getWalletByUserId(Long userId) {
         return walletRepository.findByUserId(userId);
@@ -58,19 +58,13 @@ public class WalletService {
                 Wallet liquidityWallet = new Wallet();
                 liquidityWallet.setAddress(liquidityWalletAddress);
                 liquidityWallet.setBalance(0.0);
+                liquidityWallet.setAccountStatus("ACTIVE");
 
                 Asset asset = new Asset(null, symbol, initialQuantity, 0.0, liquidityWallet);
                 liquidityWallet.getAssets().add(asset);
                 walletRepository.save(liquidityWallet);
             }
         }
-    }
-
-    @PostConstruct
-    public void initializeLiquidityPools() {
-        initializeLiquidityPools(Map.of(
-                "BTC", 100000.0, "ETH", 400000.0, "USDT", 1000000.0, "NCOIN", 10000000.0, "CCOIN", 2000000.0
-        ));
     }
 
     /*
@@ -102,6 +96,9 @@ public class WalletService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Insufficient fiat balance to buy USDT!");
             }
 
+            Transaction transactionUSDT = recordTransaction(usdtLiquidityWallet, userWallet, "USDT", quantity, price, "BUY");
+            blockchainService.validateTransaction(transactionUSDT.getId(), symbol);
+
             userWallet.setBalance(userWallet.getBalance() - totalCost);
             updateWalletAssets(userWallet, "USDT", quantity);
             updateWalletAssets(usdtLiquidityWallet, "USDT", -quantity);
@@ -109,7 +106,6 @@ public class WalletService {
             walletRepository.save(userWallet);
             walletRepository.save(usdtLiquidityWallet);
 
-            recordTransaction(usdtLiquidityWallet, userWallet, "USDT", quantity, price, "BUY");
             return "✅ USDT purchased successfully!";
         }
 
@@ -121,6 +117,9 @@ public class WalletService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Insufficient USDT balance! You must buy USDT first.");
         }
 
+        Transaction transaction = recordTransaction(liquidityWallet, userWallet, symbol, quantity, price, "BUY");
+        blockchainService.validateTransaction(transaction.getId(), symbol);
+
         updateWalletAssets(userWallet, "USDT", -totalCost);
         updateWalletAssets(usdtLiquidityWallet, "USDT", totalCost);
 
@@ -130,8 +129,6 @@ public class WalletService {
         walletRepository.save(userWallet);
         walletRepository.save(liquidityWallet);
         walletRepository.save(usdtLiquidityWallet);
-
-        recordTransaction(liquidityWallet, userWallet, symbol, quantity, price, "BUY");
 
         return "✅ Asset purchased successfully!";
     }
@@ -169,6 +166,9 @@ public class WalletService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Not enough USDT liquidity!");
             }
 
+            Transaction transaction = recordTransaction(userWallet, liquidityWallet, symbol, quantity, price, "SELL");
+            blockchainService.validateTransaction(transaction.getId(), symbol);
+
             userWallet.setBalance(userWallet.getBalance() + totalRevenue);
             updateWalletAssets(userWallet, symbol, -quantity);
             updateWalletAssets(liquidityWallet, symbol, quantity);
@@ -188,6 +188,9 @@ public class WalletService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Not enough USDT in liquidity pool!");
             }
 
+            Transaction transaction = recordTransaction(userWallet, liquidityWallet, symbol, quantity, price, "SELL");
+            blockchainService.validateTransaction(transaction.getId(), symbol);
+
             updateWalletAssets(userWallet, "USDT", totalRevenue);
             updateWalletAssets(userWallet, symbol, -quantity);
             updateWalletAssets(usdtLiquidityWallet, "USDT", -totalRevenue);
@@ -195,8 +198,6 @@ public class WalletService {
 
             walletRepository.save(usdtLiquidityWallet);
         }
-
-        recordTransaction(userWallet, liquidityWallet, symbol, quantity, price, "SELL");
 
         walletRepository.save(userWallet);
         walletRepository.save(liquidityWallet);
@@ -229,7 +230,7 @@ public class WalletService {
         walletRepository.save(wallet);
     }
 
-    private void recordTransaction(Wallet sender, Wallet receiver, String assetSymbol, double quantity, double price, String type) {
+    private Transaction recordTransaction(Wallet sender, Wallet receiver, String assetSymbol, double quantity, double price, String type) {
         Transaction transaction = new Transaction(
                 null,             // id (se genera automáticamente)
                 sender,           // senderWallet
@@ -244,7 +245,7 @@ public class WalletService {
                 null              // block (aún no asignado)
         );
 
-        transactionRepository.save(transaction);
+        return transactionRepository.save(transaction);
     }
 
     public String createWalletForUser(User user) {
@@ -363,40 +364,7 @@ public class WalletService {
         if (userOpt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
-        
+
         return getWalletTransactions(userOpt.get().getWallet().getId());
-    }
-
-    // RETO BACKEND
-
-    // Método para transferir el fee: deducirlo del wallet del emisor y sumarlo a la wallet de fees.
-    public void transferFee(Transaction tx, double fee) {
-        Wallet sender = tx.getSenderWallet();
-        // Supongamos que el liquidity pool de USDT (o la wallet designada para fees) tiene ID 2.
-        Optional<Wallet> feeWalletOpt = walletRepository.findByAddress("FEES-USDT");
-        if (feeWalletOpt.isPresent()) {
-            Wallet feeWallet = feeWalletOpt.get();
-            // Actualiza los balances:
-            sender.setBalance(sender.getBalance() - fee);
-            feeWallet.setBalance(feeWallet.getBalance() + fee);
-            walletRepository.save(sender);
-            walletRepository.save(feeWallet);
-        }
-    }
-
-    // Método para crear una wallet para fees (solo USDT)
-    public String createFeeWallet() {
-        String feeWalletAddress = "FEES-USDT";
-        Optional<Wallet> existing = walletRepository.findByAddress(feeWalletAddress);
-        if (existing.isPresent()) {
-            return "Fee wallet already exists with address: " + feeWalletAddress;
-        }
-        Wallet feeWallet = new Wallet();
-        feeWallet.setAddress(feeWalletAddress);
-        feeWallet.setBalance(0.0);
-        feeWallet.setAccountStatus("ACTIVE");
-        // Al no estar asociada a un usuario, se deja user en null
-        walletRepository.save(feeWallet);
-        return "Fee wallet created successfully with address: " + feeWalletAddress;
     }
 }

@@ -3,6 +3,7 @@ package com.hackathon.blockchain.service;
 import com.hackathon.blockchain.dto.CreateSmartContractDto;
 import com.hackathon.blockchain.model.SmartContract;
 import com.hackathon.blockchain.model.Transaction;
+import com.hackathon.blockchain.model.Wallet;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.SmartContractRepository;
 import com.hackathon.blockchain.repository.TransactionRepository;
@@ -31,11 +32,10 @@ import java.util.Optional;
 public class SmartContractEvaluationService {
 
     private final WalletKeyRepository walletKeyRepository;
-    private final WalletRepository walletRepository;
     private final SmartContractRepository smartContractRepository;
     private final TransactionRepository transactionRepository;
-    private final WalletService walletService;
-    private final WalletKeyService walletKeyService; // Para obtener la clave pública del emisor
+    private final WalletRepository walletRepository;
+    private final WalletKeyService walletKeyService;
     private final SpelExpressionParser parser;
 
     public SmartContract create(CreateSmartContractDto contract) {
@@ -45,6 +45,7 @@ public class SmartContractEvaluationService {
                 .conditionExpression(contract.getConditionExpression())
                 .action(contract.getAction())
                 .actionValue(contract.getActionValue())
+                .issuerWalletId(contract.getIssuerWalletId())
                 .build();
 
         Optional<WalletKey> optionalWalletKey = walletKeyRepository.findByWalletId(smartContract.getIssuerWalletId());
@@ -126,7 +127,7 @@ public class SmartContractEvaluationService {
                     if ("CANCEL_TRANSACTION".equalsIgnoreCase(contract.getAction())) {
                         tx.setStatus("CANCELED");
                     } else if ("TRANSFER_FEE".equalsIgnoreCase(contract.getAction())) {
-                        walletService.transferFee(tx, contract.getActionValue());
+                        transferFee(tx, contract.getActionValue());
                         tx.setStatus("PROCESSED_CONTRACT");
                     }
                     transactionRepository.save(tx);
@@ -134,6 +135,38 @@ public class SmartContractEvaluationService {
             }
         }
     }
+
+    // Método para transferir el fee: deducirlo del wallet del emisor y sumarlo a la wallet de fees.
+    public void transferFee(Transaction tx, double fee) {
+        Wallet sender = tx.getSenderWallet();
+        // Supongamos que el liquidity pool de USDT (o la wallet designada para fees) tiene ID 2.
+        Optional<Wallet> feeWalletOpt = walletRepository.findByAddress("FEES-USDT");
+        if (feeWalletOpt.isPresent()) {
+            Wallet feeWallet = feeWalletOpt.get();
+            // Actualiza los balances:
+            sender.setBalance(sender.getBalance() - fee);
+            feeWallet.setBalance(feeWallet.getBalance() + fee);
+            walletRepository.save(sender);
+            walletRepository.save(feeWallet);
+        }
+    }
+
+    // Método para crear una wallet para fees (solo USDT)
+    public String createFeeWallet() {
+        String feeWalletAddress = "FEES-USDT";
+        Optional<Wallet> existing = walletRepository.findByAddress(feeWalletAddress);
+        if (existing.isPresent()) {
+            return "Fee wallet already exists with address: " + feeWalletAddress;
+        }
+        Wallet feeWallet = new Wallet();
+        feeWallet.setAddress(feeWalletAddress);
+        feeWallet.setBalance(0.0);
+        feeWallet.setAccountStatus("ACTIVE");
+        // Al no estar asociada a un usuario, se deja user en null
+        walletRepository.save(feeWallet);
+        return "Fee wallet created successfully with address: " + feeWalletAddress;
+    }
+
 
     // UNA UNICA CONDICION
     // /**

@@ -7,6 +7,7 @@ import com.hackathon.blockchain.dto.transaction.HistoryTransactionDto;
 import com.hackathon.blockchain.model.User;
 import com.hackathon.blockchain.model.WalletKey;
 import com.hackathon.blockchain.repository.UserRepository;
+import com.hackathon.blockchain.service.SmartContractEvaluationService;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
 import jakarta.validation.Valid;
@@ -32,6 +33,7 @@ import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
 @RequestMapping("/wallet")
 public class WalletController {
 
+    private final SmartContractEvaluationService smartContractEvaluationService;
     private final UserRepository userRepository;
     private final WalletService walletService;
     private final WalletKeyService walletKeyService;
@@ -60,6 +62,8 @@ public class WalletController {
 
     @PostMapping("/buy")
     public ResponseEntity<ResponseMessageDto> buy(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAndSellAssetWalletDto buyAndSellAssetWalletDto) {
+        smartContractEvaluationService.evaluateSmartContracts();
+
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
                         .message(walletService.buyAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))
@@ -69,6 +73,8 @@ public class WalletController {
 
     @PostMapping("/sell")
     public ResponseEntity<ResponseMessageDto> sell(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAndSellAssetWalletDto buyAndSellAssetWalletDto) {
+        smartContractEvaluationService.evaluateSmartContracts();
+        
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
                         .message(walletService.sellAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))

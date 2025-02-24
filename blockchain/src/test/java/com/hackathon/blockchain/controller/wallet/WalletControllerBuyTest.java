@@ -60,6 +60,20 @@ public class WalletControllerBuyTest extends BaseControllerTest {
 
     @Test
     @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void walletController_buy_withCancelContract() throws Exception {
+        mockMvc.perform(post(urlBase)
+                        .contentType("application/json")
+                        .content(mapper.writeValueAsBytes(data.toBuilder().quantity(100001.0).build())))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(
+                        mapper.writeValueAsString(ResponseMessageDto.builder()
+                                .message("❌ Transaction blocked by smart contract conditions for BTC")
+                                .build()),
+                        JsonCompareMode.STRICT));
+    }
+
+    @Test
+    @WithUserDetails(value = "test", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     public void walletController_buy_whenWalletUserNotExists() throws Exception {
         walletRepository.deleteAll();
 
