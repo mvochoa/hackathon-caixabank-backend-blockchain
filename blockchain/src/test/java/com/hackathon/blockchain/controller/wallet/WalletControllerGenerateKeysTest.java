@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.nio.file.Path;
 
-import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,7 +33,7 @@ public class WalletControllerGenerateKeysTest extends BaseControllerTest {
                         mapper.writeValueAsString(WalletKeyDto.builder()
                                 .message(String.format("Keys generated/retrieved successfully for wallet id: %d", wallet.getId()))
                                 .publicKey(walletKey.getPublicKey())
-                                .absolutePath(Path.of(KEYS_FOLDER).toAbsolutePath().toString())
+                                .absolutePath(Path.of("keys").toAbsolutePath().toString())
                                 .build()),
                         JsonCompareMode.STRICT));
     }

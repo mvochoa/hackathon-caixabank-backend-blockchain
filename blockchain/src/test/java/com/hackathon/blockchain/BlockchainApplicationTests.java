@@ -5,7 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(
         properties = {
-                "server.port = 3001"
+                "server.port = 3001",
+                "app.keys.dir = keys"
         }
 )
 class BlockchainApplicationTests {

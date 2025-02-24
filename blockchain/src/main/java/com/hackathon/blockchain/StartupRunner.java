@@ -10,9 +10,11 @@ import com.hackathon.blockchain.service.SmartContractEvaluationService;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -20,8 +22,11 @@ import java.util.Date;
 import java.util.Map;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class StartupRunner {
+    @Value("${app.keys.dir}")
+    private String KEYS_FOLDER;
+
     private final BlockRepository blockRepository;
     private final WalletService walletService;
     private final WalletKeyService walletKeyService;
@@ -31,6 +36,11 @@ public class StartupRunner {
 
     @PostConstruct
     public void init() {
+        File dir = new File(KEYS_FOLDER);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
         walletService.initializeLiquidityPools(Map.of(
                 "BTC", 100000.0, "ETH", 400000.0, "USDT", 1000000.0, "NCOIN", 10000000.0, "CCOIN", 2000000.0
         ));
