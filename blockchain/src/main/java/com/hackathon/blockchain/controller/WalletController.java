@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 
 import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
 
@@ -74,7 +73,7 @@ public class WalletController {
     @PostMapping("/sell")
     public ResponseEntity<ResponseMessageDto> sell(@AuthenticationPrincipal User user, @Valid @RequestBody BuyAndSellAssetWalletDto buyAndSellAssetWalletDto) {
         smartContractEvaluationService.evaluateSmartContracts();
-        
+
         return new ResponseEntity<>(
                 ResponseMessageDto.builder()
                         .message(walletService.sellAsset(user.getId(), buyAndSellAssetWalletDto.getSymbol(), buyAndSellAssetWalletDto.getQuantity()))
@@ -92,7 +91,7 @@ public class WalletController {
     @GetMapping("/transactions")
     public ResponseEntity<HistoryTransactionDto> transactions(@AuthenticationPrincipal User user) {
         return new ResponseEntity<>(
-                walletService.getWalletTransactionsByUer(Optional.ofNullable(user).orElse(User.builder().id(0L).build()).getId()),
+                walletService.getWalletTransactionsByUer(user.getId()),
                 HttpStatus.OK);
     }
 

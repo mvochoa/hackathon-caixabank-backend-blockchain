@@ -1,16 +1,13 @@
 package com.hackathon.blockchain.controller.wallet;
 
 import com.hackathon.blockchain.controller.BaseControllerTest;
-import com.hackathon.blockchain.dto.ResponseMessageDto;
 import com.hackathon.blockchain.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.json.JsonCompareMode;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,17 +31,6 @@ public class WalletControllerTransactionsTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sent").isNotEmpty())
                 .andExpect(jsonPath("$.received").isNotEmpty());
-    }
-
-    @Test
-    public void walletController_transactions_userNotFound() throws Exception {
-        mockMvc.perform(get(urlBase))
-                .andExpect(status().isNotFound())
-                .andExpect(content().json(
-                        mapper.writeValueAsString(ResponseMessageDto.builder()
-                                .message("User not found")
-                                .build()),
-                        JsonCompareMode.STRICT));
     }
 
 }
