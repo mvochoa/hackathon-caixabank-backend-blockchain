@@ -48,7 +48,11 @@ public class SmartContractEvaluationService {
                 .issuerWalletId(contract.getIssuerWalletId())
                 .build();
 
-        Optional<WalletKey> optionalWalletKey = walletKeyRepository.findByWalletId(smartContract.getIssuerWalletId());
+        Optional<Wallet> optionalWallet = walletRepository.findById(smartContract.getIssuerWalletId());
+        if (optionalWallet.isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Wallet not found!");
+
+        Optional<WalletKey> optionalWalletKey = walletKeyRepository.findByWalletId(optionalWallet.get().getId());
         if (optionalWalletKey.isEmpty())
             throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ Wallet Key not found!");
 

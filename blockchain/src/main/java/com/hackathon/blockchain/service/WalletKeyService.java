@@ -50,6 +50,10 @@ public class WalletKeyService {
      * además de guardarlas en la base de datos vinculadas a la wallet.
      */
     public WalletKey generateAndStoreKeys(Wallet wallet) throws NoSuchAlgorithmException, IOException {
+        if (wallet.getWalletKey() != null) {
+            return wallet.getWalletKey();
+        }
+
         // Generar el par de claves
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
