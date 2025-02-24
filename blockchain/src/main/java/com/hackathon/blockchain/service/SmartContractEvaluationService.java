@@ -90,6 +90,18 @@ public class SmartContractEvaluationService {
         }
     }
 
+    public String verifyContractSignature(Long smartContractId) {
+        Optional<SmartContract> smartContractOpt = smartContractRepository.findById(smartContractId);
+        if (smartContractOpt.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "❌ The smart contract not found!");
+
+        if (verifyContractSignature(smartContractOpt.get())) {
+            return "Smart contract is valid";
+        }
+
+        return "Smart contract is invalid";
+    }
+
     /**
      * Evalúa todos los smart contracts activos sobre las transacciones pendientes.
      * Se inyectan las variables "amount" y "txType" en el contexto de SpEL.

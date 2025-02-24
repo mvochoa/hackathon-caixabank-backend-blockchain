@@ -13,6 +13,7 @@ import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.repository.WalletKeyRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
 import com.hackathon.blockchain.service.BlockchainService;
+import com.hackathon.blockchain.service.SmartContractEvaluationService;
 import com.hackathon.blockchain.service.UserService;
 import com.hackathon.blockchain.service.WalletKeyService;
 import com.hackathon.blockchain.service.WalletService;
@@ -71,6 +72,9 @@ public class BaseControllerTest {
 
     @Autowired
     protected WalletKeyService walletKeyService;
+
+    @Autowired
+    protected SmartContractEvaluationService smartContractEvaluationService;
 
     protected final String userPassword = "password";
     protected final User user = User.builder()
