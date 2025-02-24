@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 
 import static com.hackathon.blockchain.model.Constants.KEYS_FOLDER;
 
@@ -85,7 +86,7 @@ public class WalletController {
     @GetMapping("/transactions")
     public ResponseEntity<HistoryTransactionDto> transactions(@AuthenticationPrincipal User user) {
         return new ResponseEntity<>(
-                walletService.getWalletTransactionsByUer(user.getId()),
+                walletService.getWalletTransactionsByUer(Optional.ofNullable(user).orElse(User.builder().id(0L).build()).getId()),
                 HttpStatus.OK);
     }
 

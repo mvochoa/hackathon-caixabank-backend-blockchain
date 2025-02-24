@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/health", "/error",
                                         "/auth/register", "/auth/login",
+                                        "/wallet/transactions",
                                         "/market/prices", "/market/price/*",
                                         "/blockchain", "/blockchain/*",
                                         "/contracts/*").permitAll()
