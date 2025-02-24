@@ -81,6 +81,8 @@ public class BlockchainService {
     }
 
     public void validateTransaction(Long transactionId, String symbol) {
+        if (!symbol.equals("BTC")) return;
+
         smartContractEvaluationService.evaluateSmartContracts();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
         if (transaction.isPresent() && transaction.get().getStatus().equals("CANCELED")) {
