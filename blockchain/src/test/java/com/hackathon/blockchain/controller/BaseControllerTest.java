@@ -69,6 +69,7 @@ public class BaseControllerTest {
 
     @BeforeEach
     public void setUp() {
+        blockRepository.deleteAll();
         transactionRepository.deleteAll();
         smartContractRepository.deleteAll();
         walletKeyRepository.deleteAll();

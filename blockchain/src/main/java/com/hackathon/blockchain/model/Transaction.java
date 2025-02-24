@@ -41,5 +41,8 @@ public class Transaction {
     private Date timestamp;
     private String status;
     private Double fee;
-    private String block;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "block_id")
+    private Block block;
 }

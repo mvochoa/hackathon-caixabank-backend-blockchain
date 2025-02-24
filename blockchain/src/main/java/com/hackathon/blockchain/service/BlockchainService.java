@@ -1,17 +1,23 @@
 package com.hackathon.blockchain.service;
 
 import com.hackathon.blockchain.model.Block;
+import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.repository.BlockRepository;
+import com.hackathon.blockchain.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class BlockchainService {
 
+    private final TransactionRepository transactionRepository;
     private final BlockRepository blockRepository;
 
     public boolean isChainValid() {
@@ -21,10 +27,11 @@ public class BlockchainService {
             Block current = chain.get(i);
             Block previous = chain.get(i - 1);
 
+            String hash = current.getHash();
             String recalculatedHash = current.getCalculateHash();
-            if (!current.getHash().equals(recalculatedHash)) {
+            if (!hash.equals(recalculatedHash)) {
                 System.out.println("❌ Hash mismatch in block " + current.getBlockIndex());
-                System.out.println("Stored hash: " + current.getHash());
+                System.out.println("Stored hash: " + hash);
                 System.out.println("Recalculated: " + recalculatedHash);
                 return false;
             }
@@ -37,5 +44,36 @@ public class BlockchainService {
 
         System.out.println("✅ Blockchain is valid");
         return true;
+    }
+
+    public Block mineBlockGenesis() {
+        Block block = Block.builder()
+                .blockIndex(0L)
+                .isGenesis(true)
+                .previousHash("0")
+                .transactions(new ArrayList<>())
+                .build();
+
+        block.getCalculateHash();
+        return blockRepository.save(block);
+    }
+
+    public String mine() {
+        Block previousBlock = blockRepository.findFirstByOrderByIdDesc().orElse(mineBlockGenesis());
+        List<Transaction> pendingTxs = transactionRepository.findByStatus("PENDING");
+        if (pendingTxs.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "❌ No pending transactions to mine.");
+        }
+
+        Block block = Block.builder()
+                .blockIndex(previousBlock.getBlockIndex() + 1)
+                .isGenesis(false)
+                .previousHash(previousBlock.getHash())
+                .build();
+
+        block.getCalculateHash();
+        Block newBlock = blockRepository.save(block);
+        pendingTxs.forEach(x -> transactionRepository.save(x.toBuilder().status("MINED").block(newBlock).build()));
+        return String.format("Block mined: %s", block.getHash());
     }
 }
