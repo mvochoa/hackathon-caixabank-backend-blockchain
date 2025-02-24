@@ -6,6 +6,7 @@ import com.hackathon.blockchain.model.Block;
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.repository.BlockRepository;
 import com.hackathon.blockchain.repository.TransactionRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,7 @@ public class BlockchainService {
         return true;
     }
 
+    @PostConstruct
     public Block mineBlockGenesis() {
         Block block = Block.builder()
                 .blockIndex(0L)
@@ -63,7 +65,8 @@ public class BlockchainService {
     }
 
     public String mine() {
-        Block previousBlock = blockRepository.findFirstByOrderByIdDesc().orElse(mineBlockGenesis());
+        Block previousBlock = blockRepository.findFirstByOrderByIdDesc().orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "❌ No exist previous block."));
         List<Transaction> pendingTxs = transactionRepository.findByStatus("PENDING");
         if (pendingTxs.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "❌ No pending transactions to mine.");

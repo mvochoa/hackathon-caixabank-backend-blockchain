@@ -93,6 +93,7 @@ public class BaseControllerTest {
         userRepository.deleteAll();
         blockRepository.deleteAll();
         walletService.initializeLiquidityPools();
+        blockchainService.mineBlockGenesis();
         userRepository.save(user.toBuilder().password(passwordEncoder.encode(userPassword)).build());
     }
 
