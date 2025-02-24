@@ -33,7 +33,7 @@ public class SecurityConfig {
                         auth.requestMatchers("/health", "/error",
                                         "/auth/register", "/auth/login",
                                         "/market/prices", "/market/price/*",
-                                        "/blockchain/*").permitAll()
+                                        "/blockchain", "/blockchain/*").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

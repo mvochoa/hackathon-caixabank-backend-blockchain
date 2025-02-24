@@ -11,6 +11,7 @@ import com.hackathon.blockchain.repository.TransactionRepository;
 import com.hackathon.blockchain.repository.UserRepository;
 import com.hackathon.blockchain.repository.WalletKeyRepository;
 import com.hackathon.blockchain.repository.WalletRepository;
+import com.hackathon.blockchain.service.BlockchainService;
 import com.hackathon.blockchain.service.UserService;
 import com.hackathon.blockchain.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,9 @@ public class BaseControllerTest {
 
     @Autowired
     protected TransactionRepository transactionRepository;
+
+    @Autowired
+    protected BlockchainService blockchainService;
 
     protected final String userPassword = "password";
     protected final User user = User.builder()

@@ -1,5 +1,7 @@
 package com.hackathon.blockchain.service;
 
+import com.hackathon.blockchain.dto.BlockchainDto;
+import com.hackathon.blockchain.mapper.BlockchainMapper;
 import com.hackathon.blockchain.model.Block;
 import com.hackathon.blockchain.model.Transaction;
 import com.hackathon.blockchain.repository.BlockRepository;
@@ -75,5 +77,13 @@ public class BlockchainService {
         Block newBlock = blockRepository.save(block);
         pendingTxs.forEach(x -> transactionRepository.save(x.toBuilder().status("MINED").block(newBlock).build()));
         return String.format("Block mined: %s", block.getHash());
+    }
+
+    public List<BlockchainDto> history() {
+        List<BlockchainDto> blockchain = new ArrayList<>();
+        for (Block block : blockRepository.findAll()) {
+            blockchain.add(BlockchainMapper.entityToDto(block));
+        }
+        return blockchain;
     }
 }
